@@ -34,7 +34,7 @@ jobs:
     - name: 🏗️ Build and start services
       run: |
         echo "Building and starting Docker Compose services..."
-        docker-compose up --build -d
+        docker compose up --build -d
         echo "Services started successfully!"
         
     - name: ⏳ Wait for services to be ready
@@ -42,18 +42,18 @@ jobs:
         echo "Waiting for services to be ready..."
         sleep 30
         echo "Checking service status..."
-        docker-compose ps
+        docker compose ps
         
     - name: 🏥 Health check - PostgreSQL
       run: |
         echo "Testing PostgreSQL connection..."
-        docker-compose exec -T postgres pg_isready -U postgres -d smart_city_db
+        docker compose exec -T postgres pg_isready -U postgres -d smart_city_db
         echo "✅ PostgreSQL is ready!"
         
     - name: 🏥 Health check - Redis
       run: |
         echo "Testing Redis connection..."
-        docker-compose exec -T redis redis-cli ping
+        docker compose exec -T redis redis-cli ping
         echo "✅ Redis is ready!"
         
     - name: 🏥 Health check - Backend API
@@ -73,13 +73,13 @@ jobs:
     - name: 🧪 Run database migrations
       run: |
         echo "Running database migrations..."
-        docker-compose exec -T backend npx prisma db push
+        docker compose exec -T backend npx prisma db push
         echo "✅ Database migrations completed!"
         
     - name: 🌱 Seed database
       run: |
         echo "Seeding database..."
-        docker-compose exec -T backend npm run db:seed
+        docker compose exec -T backend npm run db:seed
         echo "✅ Database seeded successfully!"
         
     - name: 📊 Test API endpoints
@@ -103,21 +103,21 @@ jobs:
       if: failure()
       run: |
         echo "=== BACKEND LOGS ==="
-        docker-compose logs backend
+        docker compose logs backend
         echo "=== FRONTEND LOGS ==="
-        docker-compose logs frontend
+        docker compose logs frontend
         echo "=== POSTGRES LOGS ==="
-        docker-compose logs postgres
+        docker compose logs postgres
         echo "=== REDIS LOGS ==="
-        docker-compose logs redis
+        docker compose logs redis
         echo "=== NGINX LOGS ==="
-        docker-compose logs nginx
+        docker compose logs nginx
         
     - name: 🧹 Cleanup
       if: always()
       run: |
         echo "Cleaning up Docker resources..."
-        docker-compose down -v
+        docker compose down -v
         docker system prune -f
         echo "✅ Cleanup completed!"
         
