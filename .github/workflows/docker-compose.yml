@@ -35,15 +35,26 @@ jobs:
       run: |
         echo "Testing TypeScript compilation..."
         cd backend
+        echo "Installing dependencies..."
         npm install
+        echo "Dependencies installed, checking package.json..."
+        cat package.json | grep -A 10 '"scripts"'
+        echo "Running Prisma generate..."
+        npx prisma generate
+        echo "Running TypeScript build..."
         npm run build
         echo "✅ TypeScript compilation successful!"
+        echo "Checking dist directory..."
+        ls -la dist/
         
     - name: 🏗️ Build and start services
       run: |
         echo "Building and starting Docker Compose services..."
         echo "Building backend first to debug..."
-        docker compose build backend --no-cache
+        echo "Docker Compose file contents:"
+        cat docker-compose.yml | head -20
+        echo "Building backend with verbose output..."
+        docker compose build backend --no-cache --progress=plain
         echo "Backend build completed, now starting all services..."
         docker compose up -d
         echo "Services started successfully!"
