@@ -1,0 +1,64 @@
+name: 🚀 Deploy Smart City System
+
+on:
+  push:
+    branches: [ master ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+      
+    - name: 🐳 Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      
+    - name: 🔧 Create production environment
+      run: |
+        echo "Creating production environment file..."
+        cp env.example .env
+        echo "DATABASE_URL=postgresql://postgres:${DB_PASSWORD}@${DB_HOST}:5432/smart_city_db" >> .env
+        echo "REDIS_URL=redis://${REDIS_HOST}:6379" >> .env
+        echo "JWT_SECRET=${JWT_SECRET}" >> .env
+        echo "NODE_ENV=production" >> .env
+        echo "PORT=3001" >> .env
+        echo "CORS_ORIGIN=${FRONTEND_URL}" >> .env
+        echo "VITE_API_URL=${API_URL}" >> .env
+        echo "Production environment configured!"
+        
+    - name: 🏗️ Build production images
+      run: |
+        echo "Building production Docker images..."
+        docker-compose -f docker-compose.yml -f docker-compose.prod.yml build
+        echo "Production images built successfully!"
+        
+    - name: 🚀 Deploy to production
+      run: |
+        echo "Deploying Smart City system to production..."
+        docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+        echo "Deployment completed!"
+        
+    - name: ⏳ Wait for deployment
+      run: |
+        echo "Waiting for services to be ready..."
+        sleep 60
+        docker-compose -f docker-compose.yml -f docker-compose.prod.yml ps
+        
+    - name: 🏥 Production health check
+      run: |
+        echo "Running production health checks..."
+        curl -f ${API_URL}/api/health || exit 1
+        curl -f ${FRONTEND_URL} || exit 1
+        echo "✅ Production deployment successful!"
+        
+    - name: 📊 Deployment summary
+      run: |
+        echo "🎉 Smart City System deployed successfully!"
+        echo "🌐 Frontend: ${FRONTEND_URL}"
+        echo "🔧 API: ${API_URL}"
+        echo "📊 Health: ${API_URL}/api/health"
+        echo "📚 Docs: ${API_URL}/api/docs"
