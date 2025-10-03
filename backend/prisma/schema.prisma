@@ -1,0 +1,160 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  CITIZEN
+  ADMIN
+  OPERATOR
+}
+
+enum AccidentType {
+  COLLISION
+  PEDESTRIAN
+  ROLLOVER
+  MOTORCYCLE
+  BICYCLE
+  OTHER
+}
+
+enum AccidentSeverity {
+  MINOR
+  MODERATE
+  SEVERE
+  FATAL
+}
+
+enum BikeLaneCondition {
+  EXCELLENT
+  GOOD
+  FAIR
+  POOR
+}
+
+model User {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  password    String
+  firstName   String
+  lastName    String
+  phone       String?
+  address     String?
+  city        String?
+  postalCode  String?
+  role        UserRole @default(CITIZEN)
+  isActive    Boolean  @default(true)
+  avatar      String?
+  preferences Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  accidents   Accident[]
+  notifications Notification[]
+  sessions    Session[]
+
+  @@map("users")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model Accident {
+  id          String          @id @default(cuid())
+  location    String
+  type        AccidentType
+  severity    AccidentSeverity
+  date        DateTime
+  description String?
+  latitude    Float
+  longitude   Float
+  reportedBy  String?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  // Relations
+  user        User?           @relation(fields: [reportedBy], references: [id])
+  cityZone    CityZone?       @relation(fields: [cityZoneId], references: [id])
+  cityZoneId  String?
+
+  @@map("accidents")
+}
+
+model TrafficData {
+  id        String   @id @default(cuid())
+  street    String
+  speed     Float
+  volume    Int
+  direction String
+  timestamp DateTime @default(now())
+
+  @@map("traffic_data")
+}
+
+model BikeLane {
+  id          String             @id @default(cuid())
+  name        String
+  length      Float
+  condition   BikeLaneCondition
+  usage       Int                @default(0)
+  latitude    Float
+  longitude   Float
+  description String?
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  // Relations
+  cityZone    CityZone?          @relation(fields: [cityZoneId], references: [id])
+  cityZoneId  String?
+
+  @@map("bike_lanes")
+}
+
+model CityZone {
+  id          String   @id @default(cuid())
+  name        String
+  type        String
+  coordinates Json
+  population  Int?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  accidents   Accident[]
+  bikeLanes   BikeLane[]
+
+  @@map("city_zones")
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  title     String
+  message   String
+  type      String
+  isRead    Boolean  @default(false)
+  userId    String
+  createdAt DateTime @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
