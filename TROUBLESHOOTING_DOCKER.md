@@ -655,6 +655,159 @@ while ($true) {
 
 ---
 
+## 🚨 **Problema 6: Prisma OpenSSL Error**
+
+### **Síntomas:**
+```
+Error loading shared library libssl.so.1.1: No such file or directory (needed by /app/node_modules/.prisma/client/libquery_engine-linux-musl.so.node)
+PrismaClientInitializationError: Unable to require(`/app/node_modules/.prisma/client/libquery_engine-linux-musl.so.node`)
+```
+
+### **Causa:**
+- Prisma necesita OpenSSL para funcionar en Alpine Linux
+- El Dockerfile no incluye OpenSSL en la etapa de runtime
+
+### **Solución:**
+1. **Agregar OpenSSL en Dockerfile:**
+```dockerfile
+# En la etapa deps
+RUN apk add --no-cache libc6-compat openssl
+
+# En la etapa de runtime
+FROM base AS runner
+RUN apk add --no-cache openssl
+```
+
+2. **Configurar binaryTargets en schema.prisma:**
+```prisma
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+```
+
+3. **Reconstruir:**
+```powershell
+docker-compose down
+docker system prune -a
+docker-compose up --build -d
+```
+
+---
+
+## 🚨 **Problema 7: Nginx Configuration Error**
+
+### **Síntomas:**
+```
+nginx: [emerg] invalid value "must-revalidate" in /etc/nginx/conf.d/default.conf:11
+```
+
+### **Causa:**
+- Valor inválido en la directiva `gzip_proxied` de Nginx
+- `must-revalidate` no es un valor válido para esta directiva
+
+### **Solución:**
+**Corregir `frontend/nginx.conf`:**
+```nginx
+# ❌ Incorrecto
+gzip_proxied expired no-cache no-store private auth must-revalidate;
+
+# ✅ Correcto
+gzip_proxied expired no-cache no-store private auth;
+```
+
+**Reconstruir frontend:**
+```powershell
+docker-compose build frontend --no-cache
+docker-compose up frontend -d
+```
+
+---
+
+## 🚨 **Problema 8: Port Conflicts**
+
+### **Síntomas:**
+```
+Error response from daemon: ports are not available: exposing port TCP 0.0.0.0:80 -> 127.0.0.1:0: listen tcp 0.0.0.0:80: bind: An attempt was made to access a socket in a way forbidden by its access permissions
+```
+
+### **Causa:**
+- Puerto 80 ya está en uso por otro servicio
+- Windows puede tener restricciones de puertos
+
+### **Solución:**
+**Cambiar puertos en `docker-compose.yml`:**
+```yaml
+nginx:
+  ports:
+    - "8080:80"    # En lugar de "80:80"
+    - "8443:443"   # En lugar de "443:443"
+```
+
+**Verificar puertos disponibles:**
+```powershell
+netstat -ano | findstr :80
+netstat -ano | findstr :443
+```
+
+---
+
+## 🚨 **Problema 9: Docker Compose Version Warning**
+
+### **Síntomas:**
+```
+the attribute 'version' is obsolete and will be removed in future versions
+```
+
+### **Causa:**
+- Docker Compose V2 no requiere la directiva `version`
+
+### **Solución:**
+**Remover la línea `version` de `docker-compose.yml`:**
+```yaml
+# ❌ Incorrecto
+version: '3.8'
+services:
+  postgres:
+    # ...
+
+# ✅ Correcto
+services:
+  postgres:
+    # ...
+```
+
+---
+
+## 🚨 **Problema 10: Container Restart Loop**
+
+### **Síntomas:**
+```
+smart-city-backend    Up 2 minutes (restarting)
+smart-city-frontend   Up 2 minutes (restarting)
+```
+
+### **Causa:**
+- Errores de configuración que causan que los contenedores fallen
+- Dependencias faltantes o mal configuradas
+
+### **Solución:**
+1. **Verificar logs:**
+```powershell
+docker-compose logs backend
+docker-compose logs frontend
+```
+
+2. **Identificar el error específico** y aplicar la solución correspondiente
+
+3. **Reiniciar servicios específicos:**
+```powershell
+docker-compose restart backend
+docker-compose restart frontend
+```
+
+---
+
 ## 🎯 **Conclusión**
 
 Esta guía cubre los problemas más comunes de Docker Compose y sus soluciones. La clave está en:

@@ -114,7 +114,7 @@ const AccidentsPage: React.FC = () => {
                 value={filters.type || ''}
                 onChange={(e) => setFilters(prev => ({ 
                   ...prev, 
-                  type: e.target.value || undefined,
+                  type: e.target.value as any || undefined,
                   page: 1 
                 }))}
                 className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500"
@@ -132,7 +132,7 @@ const AccidentsPage: React.FC = () => {
                 value={filters.severity || ''}
                 onChange={(e) => setFilters(prev => ({ 
                   ...prev, 
-                  severity: e.target.value || undefined,
+                  severity: e.target.value as any || undefined,
                   page: 1 
                 }))}
                 className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500"

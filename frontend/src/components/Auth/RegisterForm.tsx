@@ -62,7 +62,7 @@ const RegisterForm: React.FC = () => {
     try {
       setError(null);
       const { confirmPassword, ...registerData } = data;
-      await registerUser(registerData);
+      await registerUser(registerData as any);
       navigate('/dashboard');
     } catch (err: any) {
       setError(err.message || 'Error al registrarse');
