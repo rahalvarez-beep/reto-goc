@@ -31,10 +31,21 @@ jobs:
         echo "VITE_API_URL=http://localhost:3001" >> .env
         echo "Environment file created successfully!"
         
+    - name: 🔍 Test TypeScript compilation
+      run: |
+        echo "Testing TypeScript compilation..."
+        cd backend
+        npm install
+        npm run build
+        echo "✅ TypeScript compilation successful!"
+        
     - name: 🏗️ Build and start services
       run: |
         echo "Building and starting Docker Compose services..."
-        docker compose up --build -d
+        echo "Building backend first to debug..."
+        docker compose build backend --no-cache
+        echo "Backend build completed, now starting all services..."
+        docker compose up -d
         echo "Services started successfully!"
         
     - name: ⏳ Wait for services to be ready
