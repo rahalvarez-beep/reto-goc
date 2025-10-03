@@ -247,6 +247,43 @@ git remote set-url origin https://TOKEN@github.com/usuario/repositorio.git
 
 ---
 
+## 🔄 **Subir Archivos Modificados (Actualizaciones)**
+
+### **Proceso para Subir Cambios:**
+
+```powershell
+# 1. Verificar estado de archivos modificados
+git status
+
+# 2. Agregar todos los archivos modificados
+git add .
+
+# 3. Hacer commit con mensaje descriptivo
+git commit -m "Descripción de los cambios realizados"
+
+# 4. Subir cambios al repositorio remoto
+git push origin master
+```
+
+### **Ejemplo de Commit Descriptivo:**
+```powershell
+git commit -m "Fix Docker Compose issues and complete system functionality - Fix Prisma OpenSSL error - Fix Nginx configuration - Fix port conflicts - Remove obsolete version directive - Fix TypeScript errors - Add troubleshooting docs - System now fully functional"
+```
+
+### **Verificar Cambios Subidos:**
+```powershell
+# Ver historial de commits
+git log --oneline
+
+# Verificar estado actual
+git status
+
+# Verificar conexión con repositorio remoto
+git remote -v
+```
+
+---
+
 ## 📝 **Lecciones Aprendidas**
 
 ### **1. Repositorios Privados Requieren Autenticación**
